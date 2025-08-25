@@ -1,5 +1,19 @@
 import tkinter as tk
 import csv
+import shutil
+import pathlib
+from dataclasses import dataclass
+
+
+@dataclass(frozen=True)
+class Config:
+    FRAME16_9_DIR       = u"枠部品"
+    FRAME16_9_BASE_NAME = u"ゲーム・コメント枠(%s).png"
+    FRAME4_3_DIR        = u"枠部品"
+    FRAME4_3_BASE_NAME  = u"ゲームコメント枠43共用%s.png"
+    BG_IMAGE_DIR        = u"背景"
+    BG_IMAGE_BASE_NAME  = u"背景_%s.png"
+
 
 class SelectMessage(tk.Frame):
 
@@ -86,15 +100,29 @@ class SelectMessage(tk.Frame):
 
 
     def load_message_csv(self):
+        '''
+        メッセージCSVの形式は (unique-game-name, console-type, bg-name, message-text)。
+        これを以下のようにモデルとして保持する。
+        self.messages[ unique-game-neme ] = (console-type, bg-name, message-text)
+        '''
         with open(self.csvpath, newline='', encoding='UTF-8') as csvfile:
             rows = csv.reader(csvfile, delimiter=',')
             self.messages={}
             for row in rows:
-                if len(row) == 2:
-                    self.messages[row[0].strip()] = row[1]
+                if len(row) == 4:
+                    self.messages[row[0].strip()] = (row[1],row[2],row[3])
+
+    def get_selected_console_type(self):
+        values = self.messages.get(self.selected_message_key)
+        return values[0] if values != None else None
+
+    def get_selected_background_name(self):
+        values = self.messages.get(self.selected_message_key)
+        return values[1] if values != None else None
 
     def get_selected_message(self):
-        return self.messages.get(self.selected_message_key)
+        values = self.messages.get(self.selected_message_key)
+        return values[2] if values != None else None
 
 
     #-------------------------------------
@@ -106,11 +134,48 @@ class SelectMessage(tk.Frame):
         self.msgLabel['text'] = self.get_selected_message()
 
     def accept_message(self):
+        # message
         with open(self.outpath, 'w', encoding='UTF-8') as outf:
             outf.write( self.get_selected_message() )
             outf.flush()
 
-        print('accept! "%s"' % self.get_selected_message() )
+        # console-frame
+        self.accept_frame()
+
+        # background-image
+        self.accept_bg_image()
+
+        print('accept message: "%s"' % self.get_selected_message())
+
+
+    def accept_frame(self):
+        self.accept_frame16_9()
+        self.accept_frame4_3()
+
+    def accept_frame16_9(self):
+        src_path = pathlib.Path(Config.FRAME16_9_DIR) / (Config.FRAME16_9_BASE_NAME % self.get_selected_console_type())
+        dst_path = Config.FRAME16_9_BASE_NAME % "SELECTED"
+
+        if src_path.exists():
+            print( "accept frame(16:9) <%s>: %s" % (self.get_selected_console_type(), src_path))
+            shutil.copy2(src_path, dst_path)
+
+    def accept_frame4_3(self):
+        src_path = pathlib.Path(Config.FRAME4_3_DIR) / (Config.FRAME4_3_BASE_NAME % self.get_selected_console_type())
+        dst_path = Config.FRAME4_3_BASE_NAME % "SELECTED"
+
+        if src_path.exists():
+            print( "accept frame(4:3) <%s>: %s" % (self.get_selected_console_type(), src_path))
+            shutil.copy2(src_path, dst_path)
+
+    def accept_bg_image(self):
+        src_path = pathlib.Path(Config.BG_IMAGE_DIR) / (Config.BG_IMAGE_BASE_NAME % self.get_selected_background_name())
+        dst_path = Config.BG_IMAGE_BASE_NAME % "SELECTED"
+
+        if src_path.exists():
+            print( "accept background <%s>: %s" % (self.get_selected_background_name(), src_path))
+            shutil.copy2(src_path, dst_path)
+
 
     def csv_reload(self):
         self.load_message_csv()
