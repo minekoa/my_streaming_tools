@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8-dos -*-
+
 import tkinter as tk
 import csv
 import shutil
