@@ -119,8 +119,8 @@ class RoadShowTool(tk.Frame):
             self.start_buzzer.play()
             time.sleep(self.start_buzzer.get_length())
 
-            self.timer_start()
             self.projector_working.play(loops=-1)
+            self.timer_start()
 
         elif self.timer_state == TimerState.RUNNING:
             self.timer_pause()
@@ -340,22 +340,22 @@ class RoadShowTool(tk.Frame):
         if not self.timer_state == TimerState.RUNNING:
             return
 
-        line = ""
         elapsed = time.perf_counter() - self.start_time
 
-        if elapsed >= (Config.COUNTDOWN_SECOND -1):
+        if self.is_in_count_down and elapsed >= (Config.COUNTDOWN_SECOND):
             self.is_in_count_down = False
             self.projector_working.stop()
             self.disable_countdown_anime()
 
+        line = ""
         if self.is_in_count_down:
-            h, m, s = self.to_hms(Config.COUNTDOWN_SECOND - elapsed)
+            h, m, s = self.to_hms(Config.COUNTDOWN_SECOND +1.0 - elapsed)
             line = f"あと {m:02d}:{s:02d}\n"
 
             if s == 10:
                 self.enable_countdown_anime()
         else:
-            h, m, s = self.to_hms(elapsed - (Config.COUNTDOWN_SECOND -1))
+            h, m, s = self.to_hms(elapsed - (Config.COUNTDOWN_SECOND))
             line = f"{h:02d}:{m:02d}:{s:02d}\n"
 
 
