@@ -15,9 +15,12 @@ import pygame
 class Config:
     SOUND_DIR                  = u"sound"
     SOUND_BUZZER               = u"開演ブザー.mp3"
+    SOUND_BUZZER_VOL           = 0.3
     SOUND_PROJECTOR            = u"eumig-s931-super8-projector-49153.mp3"
+    SOUND_PROJECTOR_VOL        = 0.3
     BGM_DIR                    = u"bgm"
-    EXERCISE_MUSIC             = u"早起き体操.mp3"
+    BGM_DEFAULT_VOL            = 0.1
+    SOUND_OUTPUT_DEVICE_NAME   = u"VoiceMeeter Input (VB-Audio VoiceMeeter VAIO)"
     DST_DIR                    = u"tmp"
     TIMER_FILE                 = u"経過時間.txt"
     COUNTDOWN_SECOND           = 30
@@ -358,20 +361,19 @@ class RoadShowTool(tk.Frame):
 
 
     def init_sound_resource(self):
-        pygame.mixer.init(devicename="VoiceMeeter Input (VB-Audio VoiceMeeter VAIO)")
-
+        pygame.mixer.init(devicename=Config.SOUND_OUTPUT_DEVICE_NAME)
         self.start_buzzer = pygame.mixer.Sound( str(pathlib.Path(Config.SOUND_DIR) / Config.SOUND_BUZZER))
-        self.start_buzzer.set_volume(0.3)
+        self.start_buzzer.set_volume(Config.SOUND_BUZZER_VOL)
 
         self.projector_working = pygame.mixer.Sound(str(pathlib.Path(Config.SOUND_DIR) / Config.SOUND_PROJECTOR) )
-        self.projector_working.set_volume(0.3)
+        self.projector_working.set_volume(Config.SOUND_PROJECTOR_VOL)
 
 
     def set_bgm(self):
         if self.bgm_file_path is None: return
 
         pygame.mixer.music.load(self.bgm_file_path)
-        pygame.mixer.music.set_volume(0.1)
+        pygame.mixer.music.set_volume(Config.BGM_DEFAULT_VOL)
         pygame.mixer.music.play(-1)
 
 
