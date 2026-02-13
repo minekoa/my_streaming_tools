@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # -*- coding: utf-8-dos -*-
 
 import tkinter as tk
@@ -64,14 +63,31 @@ class RoadShowTool(tk.Frame):
                        padx=10, pady=10)
 
 
+        # 背景選択
+        imageFrame = tk.Frame(ctrlFrame)
+        imageFrame.pack(side='top')
+
+        self.selectImgBtn = tk.Button(imageFrame, text="Select BGI",
+                                      command=self.selectImageFile)
+        self.selectImgBtn.pack(side='left', fill=tk.X)
+        self.imageLabel = tk.Message(imageFrame, text='',width=600)
+        self.imageLabel.pack(side='left', fill=tk.BOTH)
+
+
+        # BGM選択
+        musicFrame =tk.Frame(ctrlFrame)
+        musicFrame.pack(side='top')
+
+        self.selectBgmBtn = tk.Button(musicFrame, text="Select BGM",
+                                      command=self.selectBgmFile)
+        self.selectBgmBtn.pack(side='left', fill=tk.X)
+        self.bgmLabel = tk.Message(musicFrame, text='',width=600)
+        self.bgmLabel.pack(side='left', fill=tk.BOTH)
+
+
         # 操作ボタン（Ready, Start, Pause)
         btnFrame=tk.Frame(ctrlFrame)
         btnFrame.pack(side='left')
-
-        self.stopBtn = tk.Button(btnFrame, text="Select File",
-                                  command=self.selectFile)
-        self.stopBtn.pack(side='top', fill=tk.X)
-
 
         self.stopBtn = tk.Button(btnFrame, text="Stop",
                                   command=self.stopRoadShow)
@@ -111,14 +127,20 @@ class RoadShowTool(tk.Frame):
         self.timer_f.write(line)
         self.timer_f.flush()
 
-
         self.updateWidgets()
         self.update_bg_image()
         self.update_screen_light()
 
+        # ちょっと遅れてBGM復帰
+        time.sleep(0.5)
+        self.fade_in_and_start_bgm()
+
+
 
     def startRoadShow(self):
         if self.timer_state == TimerState.STOP:
+            self.fade_out_and_stop_bgm()
+
             self.start_buzzer.play()
             time.sleep(self.start_buzzer.get_length())
 
@@ -136,7 +158,7 @@ class RoadShowTool(tk.Frame):
         self.update_screen_light()
 
 
-    def selectFile(self):
+    def selectImageFile(self):
         self.screen_file_path = filedialog.askopenfilename(
             title="ファイルを選択",
             filetypes=[
@@ -157,8 +179,29 @@ class RoadShowTool(tk.Frame):
         self.updateWidgets()
 
 
+    def selectBgmFile(self):
+        self.bgm_file_path = filedialog.askopenfilename(
+            title="ファイルを選択",
+            initialdir= pathlib.Path.cwd() / Config.BGM_DIR,
+            filetypes=[
+                ("mp3", "*.mp3"),
+                ("All files", "*.*"),
+            ]
+        )
+        print (self.bgm_file_path)
+        self.set_bgm()
+        self.updateWidgets()
+
+
     def updateWidgets(self):
         self.updateStartButtonText()
+
+        if self.screen_file_path is not None:
+            self.imageLabel['text'] = self.screen_file_path
+
+        if self.bgm_file_path is not None:
+            self.bgmLabel['text'] = self.bgm_file_path
+
         self.msgLabel['text']= self.screen_file_path
 
     def updateStartButtonText(self):
@@ -306,6 +349,15 @@ class RoadShowTool(tk.Frame):
     # sound
     #-------------------------------------
     def init_sound(self):
+        self.init_sound_model()
+        self.init_sound_resource()
+
+
+    def init_sound_model(self):
+        self.bgm_file_path = None
+
+
+    def init_sound_resource(self):
         pygame.mixer.init(devicename="VoiceMeeter Input (VB-Audio VoiceMeeter VAIO)")
 
         self.start_buzzer = pygame.mixer.Sound( str(pathlib.Path(Config.SOUND_DIR) / Config.SOUND_BUZZER))
@@ -314,18 +366,49 @@ class RoadShowTool(tk.Frame):
         self.projector_working = pygame.mixer.Sound(str(pathlib.Path(Config.SOUND_DIR) / Config.SOUND_PROJECTOR) )
         self.projector_working.set_volume(0.3)
 
-#        pygame.mixer.music.load(pathlib.Path(Config.BGM_DIR) / Config.EXERCISE_MUSIC)
-#        pygame.mixer.music.set_volume(0.1)
-#        pygame.mixer.music.play(-1)
-#
-#    def play_buzzer(self):
-#        original_vol = pygame.mixer.music.get_volume()
-#
-#        pygame.mixer.music.set_volume(0.03)
-#        self.end_bell.play()
-#
-#        time.sleep(self.end_bell.get_length())
-#        pygame.mixer.music.set_volume(original_vol)
+
+    def set_bgm(self):
+        if self.bgm_file_path is None: return
+
+        pygame.mixer.music.load(self.bgm_file_path)
+        pygame.mixer.music.set_volume(0.1)
+        pygame.mixer.music.play(-1)
+
+
+    def fade_in_and_start_bgm(self):
+        if self.bgm_file_path is None: return
+
+        ms=1000
+        steps=10
+
+        endv = pygame.mixer.music.get_volume()
+        diff = endv - 0.0
+        step = diff / steps
+
+        pygame.mixer.music.set_volume(0)
+        pygame.mixer.music.play()
+
+        for i in range(steps):
+            pygame.mixer.music.set_volume(step*(i+1))
+            pygame.time.delay(ms // steps)
+
+    def fade_out_and_stop_bgm(self):
+        if self.bgm_file_path is None: return
+
+        ms=1000
+        steps=10
+
+        start = pygame.mixer.music.get_volume()
+        diff = 0.0 - start
+        step = diff / steps
+
+        for i in range(steps):
+            pygame.mixer.music.set_volume(start + step*(i+1))
+            pygame.time.delay(ms // steps)
+
+
+        pygame.mixer.music.stop()
+        pygame.mixer.music.set_volume(start) # 次回再生用に戻しておく
 
 
     #------------------------------------------------------------
