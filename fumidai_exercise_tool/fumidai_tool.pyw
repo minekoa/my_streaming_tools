@@ -20,6 +20,7 @@ class Config:
     DST_DIR                    = u"tmp"
     SOUND_DIR                  = u"sound"
     TIMEUP_SOUND               = u"学校のチャイム.mp3"
+    START_SOUND                = u"sei_ge_hoissuru_ren01.mp3"
     BGM_DIR                    = u"bgm"
     EXERCISE_MUSIC             = u"早起き体操.mp3"
 
@@ -61,13 +62,17 @@ class FumidaiExerciseTool(tk.Frame):
 
 
         self.startBtn = tk.Button(btnFrame, text="Start",
-                                  height=20, width=60,
+                                  font=("", 24),
+                                  height=10, width=30,
+#                                  height=20, width=60,
                                   command=self.startExercise)
         self.startBtn.pack(side='top', fill=tk.X)
 
 
         # 選択されたメッセージの表示
-        self.msgLabel = tk.Message(self, text='',width=600)
+        self.msgLabel = tk.Message(self, text='',
+                                   font=("", 40),
+                                   width=600)
         self.msgLabel.pack(side='top', fill=tk.BOTH)
 
 
@@ -118,6 +123,7 @@ class FumidaiExerciseTool(tk.Frame):
         - カウンター類を開始する
         '''
         if self.timer_state == TimerState.STOP:
+            self.play_start_whistle() # 同期的
             self.anime_startExercise()
             self.timer_start()
 
@@ -243,12 +249,30 @@ class FumidaiExerciseTool(tk.Frame):
     def init_sound(self):
         pygame.mixer.init()
 
+        self.start_whistle = pygame.mixer.Sound(pathlib.Path(Config.SOUND_DIR) / Config.START_SOUND)
+        self.start_whistle.set_volume(0.3)
+
         self.end_bell = pygame.mixer.Sound(pathlib.Path(Config.SOUND_DIR) / Config.TIMEUP_SOUND )
         self.end_bell.set_volume(0.3)
 
         pygame.mixer.music.load(pathlib.Path(Config.BGM_DIR) / Config.EXERCISE_MUSIC)
         pygame.mixer.music.set_volume(0.1)
         pygame.mixer.music.play(-1)
+
+
+    def play_start_whistle(self):
+        pygame.mixer.music.stop()
+
+
+        time.sleep(0.5)
+        self.start_whistle.play()
+
+        time.sleep(self.start_whistle.get_length()+ 0.5)
+        pygame.mixer.music.play(-1)
+
+
+
+
 
     def play_end_bell(self):
         original_vol = pygame.mixer.music.get_volume()
@@ -258,6 +282,8 @@ class FumidaiExerciseTool(tk.Frame):
 
         time.sleep(self.end_bell.get_length())
         pygame.mixer.music.set_volume(original_vol)
+
+
 
 
     #------------------------------------------------------------
@@ -278,6 +304,8 @@ class FumidaiExerciseTool(tk.Frame):
         self.timer_f.seek(0)
         self.timer_f.write(line)
         self.timer_f.flush()
+
+        self.msgLabel["text"] = line
 
 
         if elapsed >= Config.TIMER_LIMIT_SECONDS:
