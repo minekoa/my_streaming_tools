@@ -61,49 +61,45 @@ class RoadShowTool(tk.Frame):
     #-------------------------------------
 
     def create_widgets(self):
-        ctrlFrame = tk.Frame(self)
-        ctrlFrame.pack(side='top',
-                       padx=10, pady=10)
-
-
         # 背景選択
-        imageFrame = tk.Frame(ctrlFrame)
-        imageFrame.pack(side='top')
+        imageFrame = tk.Frame(self)
+        imageFrame.pack(side='top', fill=tk.BOTH, padx=10)
 
-        self.selectImgBtn = tk.Button(imageFrame, text="Select BGI",
+        self.selectImgBtn = tk.Button(imageFrame, text="Select BGI", width=10,
                                       command=self.selectImageFile)
         self.selectImgBtn.pack(side='left', fill=tk.X)
-        self.imageLabel = tk.Message(imageFrame, text='',width=600)
+        self.imageLabel = tk.Message(imageFrame, text='',width=300)
         self.imageLabel.pack(side='left', fill=tk.BOTH)
 
 
         # BGM選択
-        musicFrame =tk.Frame(ctrlFrame)
-        musicFrame.pack(side='top')
+        musicFrame =tk.Frame(self)
+        musicFrame.pack(side='top', fill=tk.BOTH, padx=10)
 
-        self.selectBgmBtn = tk.Button(musicFrame, text="Select BGM",
+        self.selectBgmBtn = tk.Button(musicFrame, text="Select BGM", width=10,
                                       command=self.selectBgmFile)
         self.selectBgmBtn.pack(side='left', fill=tk.X)
-        self.bgmLabel = tk.Message(musicFrame, text='',width=600)
+        self.bgmLabel = tk.Message(musicFrame, text='',width=300)
         self.bgmLabel.pack(side='left', fill=tk.BOTH)
 
 
         # 操作ボタン（Ready, Start, Pause)
-        btnFrame=tk.Frame(ctrlFrame)
-        btnFrame.pack(side='left')
+        btnFrame=tk.Frame(self)
+        btnFrame.pack(side='top', fill=tk.BOTH,
+                      padx=10, pady=10)
 
-        self.stopBtn = tk.Button(btnFrame, text="Stop",
+        self.stopBtn = tk.Button(btnFrame, text="Stop", width=15,
                                   command=self.stopRoadShow)
         self.stopBtn.pack(side='top', fill=tk.X)
 
 
-        self.startBtn = tk.Button(btnFrame, text="Start",
+        self.startBtn = tk.Button(btnFrame, text="Start", width=15,
                                   command=self.startRoadShow)
         self.startBtn.pack(side='top', fill=tk.X)
 
 
         # 選択されたメッセージの表示
-        self.msgLabel = tk.Message(self, text='',width=600)
+        self.msgLabel = tk.Message(self, text='',width=300)
         self.msgLabel.pack(side='top', fill=tk.BOTH)
 
 
@@ -374,7 +370,7 @@ class RoadShowTool(tk.Frame):
 
         pygame.mixer.music.load(self.bgm_file_path)
         pygame.mixer.music.set_volume(Config.BGM_DEFAULT_VOL)
-        pygame.mixer.music.play(-1)
+        pygame.mixer.music.play(-1) # -1: loop
 
 
     def fade_in_and_start_bgm(self):
@@ -388,7 +384,7 @@ class RoadShowTool(tk.Frame):
         step = diff / steps
 
         pygame.mixer.music.set_volume(0)
-        pygame.mixer.music.play()
+        pygame.mixer.music.play(-1)
 
         for i in range(steps):
             pygame.mixer.music.set_volume(step*(i+1))
