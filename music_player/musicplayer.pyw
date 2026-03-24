@@ -196,7 +196,7 @@ class MusicPlayer(tk.Frame):
         if not self.playlist : return
 
         self.index += 1
-        if self.index > len(self.playlist):
+        if self.index >= len(self.playlist):
             self.index = 0
 
         if self.state == MusicPlayState.RUNNING:
