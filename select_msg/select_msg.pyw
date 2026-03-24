@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # -*- coding: utf-8-dos -*-
 
 import tkinter as tk
@@ -16,6 +15,7 @@ class Config:
     FRAME4_3_BASE_NAME  = u"ゲームコメント枠43共用%s.png"
     BG_IMAGE_DIR        = u"背景"
     BG_IMAGE_BASE_NAME  = u"背景_%s.png"
+    DST_DIR                    = u"tmp"
 
 
 class SelectMessage(tk.Frame):
@@ -157,7 +157,7 @@ class SelectMessage(tk.Frame):
 
     def accept_frame16_9(self):
         src_path = pathlib.Path(Config.FRAME16_9_DIR) / (Config.FRAME16_9_BASE_NAME % self.get_selected_console_type())
-        dst_path = Config.FRAME16_9_BASE_NAME % "SELECTED"
+        dst_path = pathlib.Path(Config.DST_DIR) / (Config.FRAME16_9_BASE_NAME % "SELECTED")
 
         if src_path.exists():
             print( "accept frame(16:9) <%s>: %s" % (self.get_selected_console_type(), src_path))
@@ -165,7 +165,7 @@ class SelectMessage(tk.Frame):
 
     def accept_frame4_3(self):
         src_path = pathlib.Path(Config.FRAME4_3_DIR) / (Config.FRAME4_3_BASE_NAME % self.get_selected_console_type())
-        dst_path = Config.FRAME4_3_BASE_NAME % "SELECTED"
+        dst_path = pathlib.Path(Config.DST_DIR) / (Config.FRAME4_3_BASE_NAME % "SELECTED")
 
         if src_path.exists():
             print( "accept frame(4:3) <%s>: %s" % (self.get_selected_console_type(), src_path))
@@ -173,7 +173,7 @@ class SelectMessage(tk.Frame):
 
     def accept_bg_image(self):
         src_path = pathlib.Path(Config.BG_IMAGE_DIR) / (Config.BG_IMAGE_BASE_NAME % self.get_selected_background_name())
-        dst_path = Config.BG_IMAGE_BASE_NAME % "SELECTED"
+        dst_path = pathlib.Path(Config.DST_DIR) / (Config.BG_IMAGE_BASE_NAME % "SELECTED")
 
         if src_path.exists():
             print( "accept background <%s>: %s" % (self.get_selected_background_name(), src_path))
