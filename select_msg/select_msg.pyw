@@ -15,17 +15,19 @@ class Config:
     FRAME4_3_BASE_NAME  = u"ゲームコメント枠43共用%s.png"
     BG_IMAGE_DIR        = u"背景"
     BG_IMAGE_BASE_NAME  = u"背景_%s.png"
-    DST_DIR                    = u"tmp"
+    DST_DIR             = u"tmp/game"
+    MSG_CSV_FILE_PATH   = u"message.csv"
+    MSG_OUT_FILE_NAME   = u"message.txt"
 
 
 class SelectMessage(tk.Frame):
 
 
-    def __init__(self, master=None, csvpath="message.csv", outfilepath="message.txt"):
+    def __init__(self, master=None):
         super().__init__()
         self.master = master
         self.pack()
-        self.init_model(csvpath, outfilepath)
+        self.init_model()
         self.create_widgets()
         self.update_message_list()
 
@@ -92,28 +94,26 @@ class SelectMessage(tk.Frame):
     # model
     #-------------------------------------
 
-    def init_model(self, csvpath, outfilepath):
-        self.outpath = outfilepath
-        self.csvpath = csvpath
-
+    def init_model(self):
         self.messages={}
         self.selected_message_key= ""
-
         self.load_message_csv()
 
 
     def load_message_csv(self):
         '''
-        メッセージCSVの形式は (unique-game-name, console-type, bg-name, message-text)。
+        メッセージCSVの形式は (unique-game-name, console-type, bg-name, gamename-text, message-text)。
         これを以下のようにモデルとして保持する。
-        self.messages[ unique-game-neme ] = (console-type, bg-name, message-text)
+        self.messages[ unique-game-neme ] = (console-type, bg-name, gamename-text, message-text)
         '''
-        with open(self.csvpath, newline='', encoding='UTF-8') as csvfile:
+        csv_file_path = pathlib.Path(Config.MSG_CSV_FILE_PATH)
+
+        with open(csv_file_path, newline='', encoding='UTF-8') as csvfile:
             rows = csv.reader(csvfile, delimiter=',')
             self.messages={}
             for row in rows:
-                if len(row) == 4:
-                    self.messages[row[0].strip()] = (row[1],row[2],row[3])
+                if len(row) == 5:
+                    self.messages[row[0].strip()] = (row[1],row[2],row[3],row[4])
 
     def get_selected_console_type(self):
         values = self.messages.get(self.selected_message_key)
@@ -123,9 +123,13 @@ class SelectMessage(tk.Frame):
         values = self.messages.get(self.selected_message_key)
         return values[1] if values != None else None
 
-    def get_selected_message(self):
+    def get_selected_game_name(self):
         values = self.messages.get(self.selected_message_key)
         return values[2] if values != None else None
+
+    def get_selected_message(self):
+        values = self.messages.get(self.selected_message_key)
+        return values[3] if values != None else None
 
 
     #-------------------------------------
@@ -134,12 +138,15 @@ class SelectMessage(tk.Frame):
 
     def select_message(self, ev):
         self.selected_message_key = self.msgListBox.get(self.msgListBox.curselection())
-        self.msgLabel['text'] = self.get_selected_message()
+        self.msgLabel['text'] = "%s\n%s" % (self.get_selected_game_name(), self.get_selected_message())
 
     def accept_message(self):
         # message
-        with open(self.outpath, 'w', encoding='UTF-8') as outf:
-            outf.write( self.get_selected_message() )
+        outpath = pathlib.Path(Config.DST_DIR) / Config.MSG_OUT_FILE_NAME
+        message_text = "★★★　%s　★★★　%s　" % (self.get_selected_game_name(), self.get_selected_message())
+
+        with open(outpath, 'w', encoding='UTF-8') as outf:
+            outf.write( message_text )
             outf.flush()
 
         # console-frame
@@ -148,7 +155,7 @@ class SelectMessage(tk.Frame):
         # background-image
         self.accept_bg_image()
 
-        print('accept message: "%s"' % self.get_selected_message())
+        print('accept message: "%s"' % message_text)
 
 
     def accept_frame(self):
@@ -189,7 +196,5 @@ class SelectMessage(tk.Frame):
 if __name__ == '__main__':
     root = tk.Tk()
     root.title(u"メッセージセレクター")
-    app = SelectMessage(master=root,
-                        csvpath="message.csv",
-                        outfilepath="message.txt")
+    app = SelectMessage(master=root)
     app.mainloop()
